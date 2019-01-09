@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+    <data>
+      <variable
+                name="user"
+                type="cn.explo.gufeng.entity.User" />
+    </data>
+    <LinearLayout
+                  android:orientation="vertical"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent">
+
+        <android.support.v4.view.ViewPager
+                android:id="@+id/vp"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" >
+        </android.support.v4.view.ViewPager>
+
+        <android.support.design.widget.TabLayout
+                android:layout_alignParentBottom="true"
+                android:id="@+id/tbl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:tabMode="fixed"
+                app:tabGravity="fill">
+
+        </android.support.design.widget.TabLayout>
+    </LinearLayout>
+</layout>
