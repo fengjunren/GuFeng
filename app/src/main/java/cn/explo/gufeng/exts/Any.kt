@@ -7,9 +7,17 @@ import android.support.v4.app.FragmentTransaction
 fun toNextFragment(fm:FragmentManager?,fragContainId:Int,outTag: String?, infrag: Fragment, isStack: Boolean) {
     var ta: FragmentTransaction?
     if (outTag != null && !outTag.isEmpty()) {
-        val outFrag = fm?.findFragmentByTag(outTag)
+        var outFrag = fm?.findFragmentByTag(outTag)
+       if (outFrag == null) {
+            for (f in fm!!.fragments){
+                if(f.javaClass.name == outTag){
+                    outFrag=f
+                    break
+                }
+            }
+        }
         if (outFrag != null) {
-            ta = fm.beginTransaction()
+            ta = fm!!.beginTransaction()
             ta?.hide(outFrag).commitAllowingStateLoss()
         }
     }

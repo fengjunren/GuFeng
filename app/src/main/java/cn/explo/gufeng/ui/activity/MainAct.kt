@@ -1,13 +1,19 @@
 package cn.explo.gufeng.ui.activity
 
-import android.arch.lifecycle.Observer
+import android.databinding.ViewDataBinding
 import android.os.Bundle
 import android.support.v7.widget.Toolbar
+import android.widget.ProgressBar
 import cn.explo.gufeng.R
 import cn.explo.gufeng.base.BaseActivity
+import cn.explo.gufeng.base.BaseFragment
+import cn.explo.gufeng.databinding.MainActBinding
+import cn.explo.gufeng.interfs.OnBackPressListener
+import cn.explo.gufeng.tools.hawk.Hawk
 import cn.explo.gufeng.ui.fragment.MainFrag
-import cn.explo.gufeng.utils.ActivityDataBus
-import cn.explo.gufeng.vm.SharedVM
+import cn.explo.gufeng.ui.fragment.SplashFrag
+import cn.explo.gufeng.utils.Check
+import cn.explo.gufeng.utils.PackageUtil
 import com.orhanobut.logger.Logger
 import com.yanzhenjie.permission.AndPermission
 import com.yanzhenjie.permission.Permission
@@ -15,7 +21,8 @@ import com.yanzhenjie.permission.Permission
 
 class MainAct : BaseActivity() {
 
-    lateinit var mainFrag: MainFrag
+//    lateinit var mainFrag: MainFrag
+    lateinit var dBinding:MainActBinding
     override fun getLayoutId(): Int {
         return R.layout.main_act
     }
@@ -24,38 +31,29 @@ class MainAct : BaseActivity() {
         return R.id.container
     }
 
+    override fun initVariable(dataBinding: ViewDataBinding) {
+        super.initVariable(dataBinding)
+        dBinding=dataBinding as MainActBinding
+    }
+
+
     override fun bindData(savedInstanceState: Bundle?) {
         super.bindData(savedInstanceState)
-        if (savedInstanceState == null) {
-            mainFrag = MainFrag.newInstance()
-            showNextFragment(null, mainFrag, false)
-        } else {
-            mainFrag = supportFragmentManager.fragments[0] as MainFrag
+        setSupportActionBar(dBinding.myToolbar)
+        var isFirstOpen=Check.checkIsFirstOpen(this)
+        if(isFirstOpen){
+            showNextFragment(null, SplashFrag(), false)
+            Hawk.put("is_First_open",false)
+        }else {
+            var mainFrag = MainFrag.newInstance()
+            if (savedInstanceState == null) {
+                showNextFragment(null, mainFrag, false)
+            }
         }
-        val toolbar: Toolbar = findViewById(R.id.my_toolbar)
-        setSupportActionBar(toolbar)
 
-        AndPermission.with(this)
-            .runtime()
-            .permission(Permission.Group.STORAGE)
-            .onGranted({ permissions ->
-                // Storage permission are allowed.
-                Logger.i("granted:" + permissions)
-            })
-            .onDenied({ permissions ->
-                // Storage permission are not allowed.
-                Logger.i("onDenied:" + permissions)
-            })
-            .start()
 
-        ActivityDataBus.getData(this, SharedVM::class.java).getTitle().observe(this, Observer {
-            supportActionBar?.setTitle(it)
-        })
-
-        ActivityDataBus.getData(this, SharedVM::class.java).getIsDisplayBackBtn().observe(this, Observer {
-            supportActionBar?.setDisplayHomeAsUpEnabled(it!!)
-        })
     }
+
 
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
@@ -63,27 +61,24 @@ class MainAct : BaseActivity() {
     }
 
     override fun onBackPressed() {
-        val frags = supportFragmentManager.fragments
-        if (frags.size > 0) {
+        var frags = supportFragmentManager.fragments
+        val size=frags.size
+        if (size > 0) {
             val lastFrag = frags.last()
-            if (lastFrag is MainFrag) {
-                // container Fragment or its associates couldn't handle the back pressed task
-                // delegating the task to super class
-                if (!mainFrag.onBackPressed()) {
+            if (lastFrag is OnBackPressListener) {
+                if (!lastFrag.onBackPressed()) {
                     super.onBackPressed()
                 }
             } else {
                 supportFragmentManager.popBackStackImmediate()
-                val frags = supportFragmentManager.fragments
+                frags = supportFragmentManager.fragments
                 if (frags.size > 0) {
-                    supportFragmentManager.beginTransaction().show(frags.last()).commitAllowingStateLoss()
+                    val lastFrag=frags.last() as BaseFragment
+                    supportFragmentManager.beginTransaction().show(lastFrag).commitAllowingStateLoss()
                 }
             }
-        }
+        }else super.onBackPressed()
 
-//        if (!mainFrag.onBackPressed()) {
-//            super.onBackPressed()
-//        }
     }
 
 }

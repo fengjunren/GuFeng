@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import cn.explo.gufeng.enum.TriggerAction
 import cn.explo.gufeng.exts.removeFragment
 import cn.explo.gufeng.exts.toNextFragment
 import cn.explo.gufeng.utils.ActivityDataBus
@@ -20,9 +21,6 @@ import com.orhanobut.logger.Logger
 
 open class BaseFragment : Fragment(),View.OnTouchListener{
 
-//    private val STATE_SAVE_IS_USER_VISIBLE_HINT = "STATE_SAVE_IS_USER_VISIBLE_HINT"
-//    private val STATE_SAVE_TITLE="STATE_SAVE_TITLE"
-//    private val STATE_SAVE_IS_DISPLAY_BACK_BTN="STATE_SAVE_IS_DISPLAY_BACK_BTN"
     var title=""
     var is_display_back_btn=false
 
@@ -41,23 +39,48 @@ open class BaseFragment : Fragment(),View.OnTouchListener{
     open fun initListener(){
 
     }
-    open fun bindData(){
+    open fun bindData(savedInstanceState: Bundle?){
 
     }
 
-    open fun onVisible(){
+    open fun onVisible(triggerAction: TriggerAction){
         val instance=this
-        setTitleAndBackBtn()
+        val hasChilds=childFragmentManager!!.fragments.size>0
+        if(!hasChilds)setTitleAndBackBtn()else{
+            if(triggerAction==TriggerAction.onResume)
+                setTitleAndBackBtn()
+            else onVisibleChild()
+        }
     }
-    open fun onInvisible(){}
+    open fun onInvisible(triggerAction: TriggerAction){}
 
-    open fun setTitleAndBackBtn(){
-        if(!title.isEmpty()){
-            ActivityDataBus.getData(activity, SharedVM::class.java).setTitle(title)
-            ActivityDataBus.getData(activity, SharedVM::class.java).setIsDisplayBackBtn(is_display_back_btn)
+    open fun onVisibleChild() {
+        val fs = childFragmentManager!!.fragments
+        var visibleFrag:BaseFragment?=null
+        for(f in fs){
+            if(f.userVisibleHint){
+                visibleFrag=f as BaseFragment
+                break
+            }
+        }
+        if (fs.size > 0&&visibleFrag==null) {
+            visibleFrag = fs.last() as BaseFragment
+        }
+        if (fs.size > 0){
+            getFm()!!.beginTransaction().show(visibleFrag!!).commitAllowingStateLoss()
+            if(visibleFrag.childFragmentManager.fragments.size==0)visibleFrag.onResume()else visibleFrag.onVisibleChild()
         }
     }
 
+    open fun setTitleAndBackBtn(){
+        val instance=this
+
+        if(!title.isEmpty()){
+            val act = activity as BaseActivity
+            act.supportActionBar?.title = title
+            act.supportActionBar?.setDisplayHomeAsUpEnabled(is_display_back_btn)
+        }
+    }
 
 
     /**
@@ -73,9 +96,9 @@ open class BaseFragment : Fragment(),View.OnTouchListener{
         val instance=this
         if (isResumed && change) {
             if (userVisibleHint) {
-                onVisible()
+                onVisible(TriggerAction.setUserVisibleHint)
             } else {
-                onInvisible()
+                onInvisible(TriggerAction.setUserVisibleHint)
             }
         }
     }
@@ -89,9 +112,9 @@ open class BaseFragment : Fragment(),View.OnTouchListener{
         super.onHiddenChanged(hidden)
         val instance=this
         if (hidden) {
-            onInvisible()
+            onInvisible(TriggerAction.onHiddenChanged)
         } else {
-            onVisible()
+            onVisible(TriggerAction.onHiddenChanged)
         }
     }
 
@@ -108,10 +131,16 @@ open class BaseFragment : Fragment(),View.OnTouchListener{
         val _isVisible=if(parent==null){
             userVisibleHint && !isHidden
         }else{
-            parent.userVisibleHint&&userVisibleHint && !isHidden
+            val grandpa=parent.parentFragment
+            val _visible=if(grandpa==null){
+                parent.userVisibleHint&&parent.isVisible&&userVisibleHint && !isHidden
+            }else{
+                grandpa.userVisibleHint&&grandpa.isVisible&&parent.userVisibleHint&&parent.isVisible&&userVisibleHint && !isHidden
+            }
+            _visible
         }
         if (_isVisible) {
-            onVisible()
+            onVisible(TriggerAction.onResume)
         }
     }
 
@@ -120,30 +149,10 @@ open class BaseFragment : Fragment(),View.OnTouchListener{
         // onPause时也需要判断，如果当前fragment在viewpager中不可见，就已经回调过了，onPause时也就不需要再次回调onInvisible了
         // 所以，只有当fragment是可见状态时进入onPause才加调onInvisible
         if (userVisibleHint && !isHidden) {
-            onInvisible()
+            onInvisible(TriggerAction.onPause)
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (savedInstanceState != null) {
-//            val is_user_visible_hint = savedInstanceState.getBoolean(STATE_SAVE_IS_USER_VISIBLE_HINT)
-             val instance=this
-//            Logger.i("onCreate savedInstanceState:"+instance::class.java.simpleName+",is_user_visible_hint:"+is_user_visible_hint)
-//            is_display_back_btn=savedInstanceState.getBoolean(STATE_SAVE_IS_DISPLAY_BACK_BTN)
-//            title=savedInstanceState.getString(STATE_SAVE_TITLE)
-//            userVisibleHint=is_user_visible_hint
-//            Logger.i("is_user_visible_hint:$is_user_visible_hint ,is_display_back_btn:$is_display_back_btn,title:$title --------------------")
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        Logger.i("onSaveInstanceState  STATE_SAVE_IS_HIDDEN:$isHidden --------------------")
-        val instance=this
-//        outState.putBoolean(STATE_SAVE_IS_USER_VISIBLE_HINT, userVisibleHint)
-//        outState.putString(STATE_SAVE_TITLE,title)
-//        outState.putBoolean(STATE_SAVE_IS_DISPLAY_BACK_BTN,is_display_back_btn)
-    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -160,27 +169,13 @@ open class BaseFragment : Fragment(),View.OnTouchListener{
         Logger.i("onActivityCreated")
         initView()
         initListener()
-        bindData()
+        bindData(savedInstanceState)
     }
-
-//    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
-//        super.setUserVisibleHint(isVisibleToUser)
-//        if(isVisibleToUser&&activity!=null&&!title.isEmpty()){
-//            ActivityDataBus.getData(activity, SharedVM::class.java).setTitle(title)
-//            ActivityDataBus.getData(activity, SharedVM::class.java).setIsDisplayBackBtn(is_display_back_btn)
-//        }
-//        onSetUserVisibleHint(isVisibleToUser)
-//    }
-//
-//    open fun onSetUserVisibleHint(isVisibleToUser: Boolean){
-//
-//    }
 
 
     inline  fun  <reified T: ViewModel> getViewModel():T=ViewModelProviders.of(this).get(T::class.java)
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         return true
     }
 
@@ -193,43 +188,6 @@ open class BaseFragment : Fragment(),View.OnTouchListener{
         showNextFragment(outFrag,infrag,true)
     }
 
-//    fun showNextFragment(outTag: String?, infrag: Fragment, isStack: Boolean){
-//        toNextFragment(getFm(),getFragmentContainId(),outTag,infrag,isStack)
-//    }
-//
-//    fun showNextFragment(outTag: String?, infrag: Fragment){
-//        showNextFragment(outTag,infrag,true)
-//    }
-
-
-//    fun toNextFragment(outTag: String?, infrag: Fragment, isStack: Boolean) {
-//        //        FragmentManager fm=getChildFragmentManager();
-//        var ta: FragmentTransaction? = null
-//        val fm=getFm()
-//        if (outTag != null && !outTag.isEmpty()) {
-//            val outFrag = fm?.findFragmentByTag(outTag)
-//            if (outFrag != null) {
-//                ta = fm.beginTransaction()
-//                ta!!.hide(outFrag!!).commitAllowingStateLoss()
-//            }
-//        }
-//
-//        val inTag = infrag.javaClass.name
-//        val inFragtemp = fm?.findFragmentByTag(inTag)
-//        ta = fm?.beginTransaction()
-//        if (inFragtemp != null) {
-//            ta!!.show(inFragtemp!!)
-//        } else {
-//            if (isStack) ta!!.addToBackStack(inTag)
-//            ta?.add(getFragmentContainId(), infrag)
-//        }
-//        // Store the Fragment in stack
-//        ta?.commit()
-//    }
-//
-//    fun toNextFragment(outTag: String, infrag: Fragment) {
-//        toNextFragment(outTag, infrag, true)
-//    }
 
    open fun getFragmentContainId():Int=0
 

@@ -23,7 +23,7 @@ object AppExecutors {
     fun execCPU(r:Runnable){
          cpu.execute(r)
     }
-    fun schedule():ScheduledExecutorService{
+    fun timer():ScheduledExecutorService{
       return schedulePool
     }
     fun execSchedule(r:Runnable){

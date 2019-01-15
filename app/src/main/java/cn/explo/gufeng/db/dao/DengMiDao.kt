@@ -11,8 +11,14 @@ interface DengMiDao{
     @Insert
     fun insert(dm: DengMi)
 
+    @Query("select * from deng_mi where id=:id")
+    fun getById(id:Int): DengMi
+
     @Query("select count(1) from deng_mi")
     fun qryCount(): Int
+
+    @Query("select * from deng_mi  where id>:startId order by id asc limit :pageCount")
+    fun qryNextPage(startId:Int,pageCount:Int): List<DengMi>
 
     @Transaction
     fun insert(lst: List<DengMi>){
@@ -20,4 +26,6 @@ interface DengMiDao{
             insert(dm)
         }
     }
+
+
 }

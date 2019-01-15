@@ -1,20 +1,23 @@
 package cn.explo.gufeng.ui.fragment
 
 import android.databinding.ViewDataBinding
-import android.support.v4.view.ViewPager
+import android.os.Bundle
 import cn.explo.gufeng.R
 import cn.explo.gufeng.base.BaseFragment
 import cn.explo.gufeng.interfs.OnBackPressListener
-import cn.explo.gufeng.ui.adapter.ViewPagerAdapter
+import cn.explo.gufeng.ui.adapter.MainAdapter
 import cn.explo.gufeng.vm.MainVM
 import cn.explo.gufeng.databinding.MainFragBinding
+import com.orhanobut.logger.Logger
+import com.yanzhenjie.permission.AndPermission
+import com.yanzhenjie.permission.Permission
 
-class MainFrag : BaseFragment() {
+class MainFrag : BaseFragment(),OnBackPressListener {
 
      lateinit var  mv: MainVM
      lateinit var  dBinding : MainFragBinding
 
-    lateinit var adapter:ViewPagerAdapter
+    lateinit var adapter: MainAdapter
 
     companion object {
         fun newInstance() = MainFrag()
@@ -31,19 +34,33 @@ class MainFrag : BaseFragment() {
     }
 
 
-    override fun bindData() {
-        super.bindData()
-        adapter=ViewPagerAdapter(resources,childFragmentManager)
+    override fun bindData(savedInstanceState: Bundle?) {
+        super.bindData(savedInstanceState)
+        adapter= MainAdapter(resources, childFragmentManager)
         dBinding.vp.adapter=adapter
         dBinding.tbl.setupWithViewPager(dBinding.vp)
+
+        AndPermission.with(this)
+            .runtime()
+            .permission(Permission.Group.STORAGE)
+            .onGranted({ permissions ->
+                // Storage permission are allowed.
+                Logger.i("granted:" + permissions)
+            })
+            .onDenied({ permissions ->
+                // Storage permission are not allowed.
+                Logger.i("onDenied:" + permissions)
+            })
+            .start()
     }
+
 
     /**
      * Retrieve the currently visible Tab Fragment and propagate the onBackPressed callback
      *
      * @return true = if this fragment and/or one of its associates Fragment can handle the backPress
      */
-    fun onBackPressed(): Boolean {
+    override fun onBackPressed(): Boolean {
         // currently visible tab Fragment
         val currentFragment = adapter.getRegisteredFragment(dBinding.vp.currentItem) as OnBackPressListener
 

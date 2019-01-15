@@ -1,0 +1,80 @@
+<layout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/shy"
+            android:orientation="horizontal"
+            android:gravity="right"
+            android:paddingRight="40dp"
+            android:paddingTop="40dp"
+    >
+
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" >
+
+
+        <cn.explo.gufeng.ui.widget.FadeInTextView
+                android:id="@+id/tv4"
+                tools:text="@string/shy_4"
+                android:gravity="top"
+                android:textSize="25sp"
+                android:textColor="@android:color/darker_gray"
+                android:ems="1"
+                android:layout_width="wrap_content"
+                android:layout_height="265dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+        />
+
+        <cn.explo.gufeng.ui.widget.FadeInTextView
+                android:id="@+id/tv3"
+                tools:text="@string/shy_3"
+                android:gravity="top"
+                android:textSize="25sp"
+                android:textColor="@android:color/darker_gray"
+                android:ems="1"
+                android:layout_width="wrap_content"
+                android:layout_height="265dp"/>
+
+
+        <cn.explo.gufeng.ui.widget.FadeInTextView
+                android:id="@+id/tv2"
+                tools:text="@string/shy_2"
+                android:gravity="top"
+                android:textSize="25sp"
+                android:ems="1"
+                android:layout_width="wrap_content"
+                android:textColor="@android:color/darker_gray"
+                android:layout_height="265dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+        />
+
+        <cn.explo.gufeng.ui.widget.FadeInTextView
+                android:id="@+id/tv1"
+                tools:text="@string/shy_1"
+                android:gravity="top"
+                android:textSize="25sp"
+                android:ems="1"
+                android:layout_width="wrap_content"
+                android:textColor="@android:color/darker_gray"
+
+                android:layout_height="265dp"/>
+        </LinearLayout>
+
+        <cn.explo.gufeng.ui.widget.FadeInTextView
+                android:id="@+id/tv5"
+                tools:text="@string/shy_5"
+                android:gravity="top|center_horizontal"
+                android:textSize="35sp"
+                android:textColor="@android:color/darker_gray"
+                android:ems="1"
+                android:layout_width="wrap_content"
+                android:layout_height="265dp"
+                android:textStyle="bold"
+                android:layout_marginLeft="20dp"
+        />
+    </LinearLayout>
+</layout>

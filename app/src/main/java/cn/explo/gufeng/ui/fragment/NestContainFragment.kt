@@ -1,5 +1,6 @@
 package cn.explo.gufeng.ui.fragment
 
+import android.os.Bundle
 import android.support.v4.app.Fragment
 import cn.explo.gufeng.R
 import cn.explo.gufeng.base.BaseFragment
@@ -14,8 +15,8 @@ open class NestContainFragment : BaseNestFragment(), OnBackPressListener {
     }
 
 
-    override fun bindData() {
-        super.bindData()
+    override fun bindData(savedInstanceState: Bundle?) {
+        super.bindData(savedInstanceState)
         attachChildFragment ?: also {
             val cls = arguments?.getString("setupFragment", "")
             firstFrag = Fragment.instantiate(it.activity, cls)
@@ -23,12 +24,12 @@ open class NestContainFragment : BaseNestFragment(), OnBackPressListener {
         }
     }
 
-    override fun onVisible() {
-        super.onVisible()
+    override fun onVisibleChild() {
         val fs = childFragmentManager.fragments
         if (fs.size > 0) {
             val lastFrag = fs.last() as BaseFragment
-            lastFrag.setTitleAndBackBtn()
+            getFm()!!.beginTransaction().show(lastFrag).commitAllowingStateLoss()
+            if(lastFrag.childFragmentManager.fragments.size==0)lastFrag.onResume()else lastFrag.onVisibleChild()
         }
     }
 
@@ -39,7 +40,8 @@ open class NestContainFragment : BaseNestFragment(), OnBackPressListener {
             childFragmentManager.popBackStackImmediate()
             val frags = childFragmentManager.fragments
             if (frags.size > 0) {
-                childFragmentManager.beginTransaction().show(frags.last()).commitAllowingStateLoss()
+                val lastFrag=frags.last() as BaseFragment
+                childFragmentManager.beginTransaction().show(lastFrag).commitAllowingStateLoss()
             }
             true
         }

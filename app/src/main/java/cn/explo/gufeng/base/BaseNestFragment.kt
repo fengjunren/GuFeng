@@ -23,6 +23,4 @@ open class BaseNestFragment : BaseFragment() {
     override fun getFm(): FragmentManager? {
         return childFragmentManager
     }
-
-
 }
