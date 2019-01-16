@@ -2,7 +2,7 @@
 古风
 
 ## 预览
-<span><img src="img/preview.gif" width="35%" height="35%" >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<span ><img src="img/preview.gif" width="35%" height="35%" >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src="https://github.com/yilishazi/fengjunren.github.io/blob/master/gufeng_download.png" ></span>
 
 ## 代码层级
